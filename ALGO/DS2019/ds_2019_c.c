@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 int * rot_gauche(int * tab,int size){
     int i;
@@ -21,7 +22,7 @@ void afficher(int *tab,int size){
     printf("\r\n");
 }
 
-void afficher(int *tab,int nb_lignes,int nb_colonnes){
+/*void afficher(int *tab,int nb_lignes,int nb_colonnes){
     int i,j;
     for(i=0;i<nb_lignes;i++){
         for(j=0;j<nb_colonnes;j++){
@@ -30,7 +31,7 @@ void afficher(int *tab,int nb_lignes,int nb_colonnes){
         printf("\r\n");
     }
     printf("\r\n");
-}
+}*/
 
 int max(int a,int b){
     if(a>=b)
@@ -38,26 +39,26 @@ int max(int a,int b){
     return b;
 }
 
-int m(int *value,int *w,int nb_metal,int capa, int i,int j){
+int m(int **value,int *w,int nb_metal,int capa, int i,int j){
     if(i==0 || j<=0){
-        *(value+j+i*capa)=0;
-        return 0;
+        *(*(value+i)+j)=0;
+        return 0 ;
     }
-    if(*(value+j+(i-1)*capa)==-1)
-        *(value+j+(i-1)*capa)=m(value,w,nb_metal,capa,i-1,j);
+    if(*(*(value+i-1)+j)==-1)
+        *(*(value+i-1)+j)=m(value,w,nb_metal,capa,i-1,j);
     
     if(*(w+i)>j){
-        *(value+j+i*capa)=*(value+j+(i-1)*capa);
+        *(*(value+i)+j)=*(*(value+i-1)+j);
     }else{
-        if(*(value+j-*(w+i)+(i-1)*capa)==-1){
-            *(value+j-*(w+i)+(i-1)*capa)=m(value,w,nb_metal,capa,i-1,j-*(w+i));
+        if(*(*(value+i-1)+j-*(w+i))==-1){
+            *(*(value+i-1)+j-*(w+i))=m(value,w,nb_metal,capa,i-1,j-*(w+i));
         }
-        *(value+j+i*capa)=max(*(value+j+(i-1)*capa),
-                              *(value+j-*(w+i)+(i-1)*capa)+*(w+i));
+        *(*(value+i)+j)=max(*(*(value+i-1)+j),*(*(value+i-1)+j-*(w+i))+*(w+i));
     }
+    return *(*(value+i)+j);
 }
 
-int max_metal_bateau(int * tab_metal,int nb_metal,int capa){
+/*int max_metal_bateau(int * tab_metal,int nb_metal,int capa){
     int i,j;
     int value[nb_metal][capa];
     for(i=0;i<capa;i++){
@@ -65,9 +66,9 @@ int max_metal_bateau(int * tab_metal,int nb_metal,int capa){
             value[j][i]=-1;
         }
     }
-    afficher(tab_metal,nb_metal,capa);
+    //afficher(tab_metal,nb_metal,capa);
     return m(value,tab_metal,nb_metal,capa,nb_metal,capa);
-}
+}*/
 
 int main(){
     int capa1,capa2,nb_or,nb_arg,i,j;
@@ -90,7 +91,7 @@ int main(){
     }
 
     // Tri tab_or et tab_arg
-    for(i=0;i<=nb_or;i++){
+    /*for(i=0;i<=nb_or;i++){
         int ipp=i;
         for(j=i+1;j<=nb_or;j++){
             if(tab_or[j]>tab_or[ipp])
@@ -109,7 +110,7 @@ int main(){
         int a=tab_arg[ipp];
         tab_arg[ipp]=tab_arg[i];
         tab_arg[i]=a;
-    }
+    }*/
 
     // Initialistion L et nb
     /*bool L[capa1+1][nb_or+1];
@@ -146,7 +147,93 @@ int main(){
         }
     }*/
 
-    int res=max_metal_bateau(tab_or,nb_or,capa1);
-    printf("%d\r\n",res);
+    //int res=max_metal_bateau(tab_or,nb_or,capa2);
+    
+    
+    /*int value[nb_or][capa1];
+    for(i=0;i<capa1;i++){
+        for(j=0;j<nb_or;j++){
+            value[j][i]=-1;
+        }
+    }*/
+    int result[4];
+    int **value;
+
+    // nb_or capa1
+    value=malloc((nb_or+1)*sizeof(int*));
+    for(i=0;i<=nb_or;i++){
+        value[i]=malloc((capa1+1)*sizeof(int));
+        for(j=0;j<=capa1;j++){
+            *(*(value+i)+j)=-1;
+        }
+    }
+
+    //afficher(tab_metal,nb_metal,capa);
+    m(value,tab_or,nb_or+1,capa1+1,nb_or,capa1);
+    int res=value[nb_or][capa1];
+    //printf("%d\r\n",res);
+    result[0]=res;
+
+    for(i=0;i<=nb_or;i++){
+        free(value[i]);
+    }
+    free(value);
+
+    //nb_or capa2
+    value=malloc((nb_or+1)*sizeof(int*));
+    for(i=0;i<=nb_or;i++){
+        value[i]=malloc((capa2+1)*sizeof(int));
+        for(j=0;j<=capa2;j++){
+            *(*(value+i)+j)=-1;
+        }
+    }
+    m(value,tab_or,nb_or+1,capa2+1,nb_or,capa2);
+    res=value[nb_or][capa2];
+    //printf("%d\r\n",res);
+    result[1]=res;
+
+    for(i=0;i<=nb_or;i++){
+        free(value[i]);
+    }
+    free(value);
+
+    //nb_arg capa1
+    value=malloc((nb_arg+1)*sizeof(int*));
+    for(i=0;i<=nb_arg;i++){
+        value[i]=malloc((capa1+1)*sizeof(int));
+        for(j=0;j<=capa1;j++){
+            *(*(value+i)+j)=-1;
+        }
+    }
+    m(value,tab_arg,nb_arg+1,capa1+1,nb_arg,capa1);
+    res=value[nb_arg][capa1];
+    //printf("%d\r\n",res);
+    result[2]=res;
+
+    for(i=0;i<=nb_arg;i++){
+        free(value[i]);
+    }
+    free(value);
+
+    //nb_arg capa2
+    value=malloc((nb_arg+1)*sizeof(int*));
+    for(i=0;i<=nb_arg;i++){
+        value[i]=malloc((capa2+1)*sizeof(int));
+        for(j=0;j<=capa2;j++){
+            *(*(value+i)+j)=-1;
+        }
+    }
+    m(value,tab_arg,nb_arg+1,capa2+1,nb_arg,capa2);
+    res=value[nb_arg][capa2];
+    //printf("%d\r\n",res);
+    result[3]=res;
+
+    for(i=0;i<=nb_arg;i++){
+        free(value[i]);
+    }
+    free(value);
+    printf("%d\r\n",max(result[0]+result[3],result[1]+result[2]));
+
+    
     return 0;
 }
