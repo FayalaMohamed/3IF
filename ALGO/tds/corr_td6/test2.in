@@ -1,0 +1,25 @@
+init 10
+insert a 1
+insert b 2
+insert c 3
+insert d 4
+insert e 5
+insert f 6
+insert g 7
+insert h 8
+insert i 9
+insert j 10
+insert k 11
+query a
+query b
+query c
+query d
+query e
+query f
+query g
+query h
+query i
+query j
+query k
+destroy
+bye

@@ -1,0 +1,21 @@
+init 10
+insert a 1
+insert b 2
+insert c 3
+insert d 4
+insert e 5
+insert f 6
+insert g 7
+insert h 8
+insert i 9
+insert j 10
+delete a
+delete c
+delete b
+delete d
+delete j
+query a
+query f
+stats
+destroy
+bye
