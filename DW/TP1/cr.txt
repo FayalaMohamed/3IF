@@ -1,0 +1,55 @@
+FIRST PART
+STEP 1
+
+1/ //country_name/offic_name
+offic_name	Aruba
+offic_name	Islamic Republic of Afghanistan
+ 
+2/ //@lat
+lat	12.5
+lat	33
+
+3/ //@area
+area	180
+area	652230
+
+4/ //country[./infosContinent/continent="Europe"]/country_name/offic_name
+offic_name	Åland Islands
+offic_name	Republic of Albania
+
+5/ //country_name[count(./native_name)=0]/common_name
+common_name	Antarctica
+
+6/ //native_name[@lang="fra"]/offic_name
+offic_name	Territoire des Terres australes et antarctiques françaises
+offic_name	République du Burundi
+
+7/ //*[count(@*) > 0]
+country	
+native_name	
+
+8/ //native_name[position()=2]/offic_name
+offic_name	Aruba
+offic_name	
+
+9/ sum(//country[./infosContinent/continent="Africa"]/number(@area))
+Result=3.0318023E7
+
+10/ //country_name[not(contains(offic_name,common_name))]/offic_name
+offic_name	Argentine Republic
+offic_name	Swiss Confederation
+
+11/ //country[./country_name/common_name="France"]/borders/neighbour[last()]
+neighbour	CHE
+
+12/ count(//country[./country_name/common_name="France"]/preceding-sibling::*)+1
+Resultat = 76.0
+
+
+Step 2:
+
+//country[count(borders)=0]
+
+<!ELEMENT country (country_name,tld*,country_codes,currency*,callingCode*,
+                   capital,altSpellings+, infosContinent+,languages+,
+                   coordinates*,demonym,landlocked,borders*)>
