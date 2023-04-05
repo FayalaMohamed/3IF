@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
         mem_show_heap();
     } */
 
-    /* char *p = mem_alloc(200);
+     /* char *p = mem_alloc(200);
     assert(p != NULL); // check whether the allocation was successful
     printf("allocated 200 bytes at %p\n", p);
     mem_show_heap();
@@ -45,9 +45,9 @@ int main(int argc, char *argv[])
     p = mem_alloc(300);
     assert(p != NULL); // check whether the allocation was successful
     printf("allocated 300 bytes at %p\n", p);
-    mem_show_heap(); */
+    mem_show_heap();  */
 
-    int i = 0;
+    /* int i = 0;
      while (i < 7)
     {
         char *p = mem_alloc(42);
@@ -55,5 +55,35 @@ int main(int argc, char *argv[])
         printf("allocated 42 bytes for the %d time at %p\n", i + 1, p);
         mem_show_heap();
         i++;
+        if (i == 6){
+            mem_release(p);
+            mem_show_heap();
+        }
     }
+    mem_show_heap(); */
+
+    char *p = mem_alloc(200);
+    assert(p != NULL); // check whether the allocation was successful
+    printf("allocated 200 bytes at %p\n", p);
+    mem_show_heap();
+    mem_release(p);
+    mem_show_heap();
+    p = mem_alloc(300);
+    assert(p != NULL); // check whether the allocation was successful
+    printf("allocated 300 bytes at %p\n", p);
+    mem_show_heap();
+
+    char *p0 = mem_alloc(200);
+    assert(p0 != NULL); // check whether the allocation was successful
+    printf("allocated 200 bytes at %p\n", p0);
+    char *p1 = mem_alloc(200);
+    assert(p1 != NULL); // check whether the allocation was successful
+    printf("allocated 200 bytes at %p\n", p1);
+    mem_show_heap();
+    mem_release(p);
+    mem_show_heap();
+    mem_release(p1);
+    mem_show_heap();
+    mem_release(p0);
+    mem_show_heap();
 }

@@ -11,8 +11,6 @@ void *heap_base = NULL; // first address of the heap
 void *heap_end = NULL;  // first address beyond the heap
 
 int mem_initialized = 0;
-
-// initialize the memory manager
 void mem_init(void)
 {
     // request memory from the kernel
@@ -22,15 +20,10 @@ void mem_init(void)
     heap_end = heap_base + 800;
 
     // create some free blocks: five of 80 bytes and one of 400 bytes
-    void *block_ptr;
-    for (int i = 0; i < 5; i++)
-    {
-        block_ptr = heap_base + 80 * i;
-        *((int64_t *)block_ptr) = 80;
-    }
-    block_ptr = heap_base + 400;
-    *((int64_t *)block_ptr) = 400;
-
+    void *block_ptr = heap_base;
+    *((int64_t *)block_ptr) = 800;
+    block_ptr = heap_end - 8;
+    *((int64_t *)block_ptr) = 800;
     mem_initialized = 1;
 }
 
@@ -77,11 +70,17 @@ void *mem_alloc(int64_t length)
     size = length;
     header = size | flags;
     *((int64_t *)block_ptr) = header; // write header back into the block
+    *((int64_t *)(block_ptr + size - 8)) = header;
 
-    void *remaining_block = block_ptr + length;
-    int64_t remaining_size = old_size - size;
+    // decoupage
+    if (old_size - size > 8)
+    {
+        void *remaining_block = block_ptr + length;
+        int64_t remaining_size = old_size - size;
 
-    *((int64_t *)remaining_block) = remaining_size | 0b000;
+        *((int64_t *)remaining_block) = remaining_size | 0b000;
+        *((int64_t *)(remaining_block + remaining_size - 8)) = remaining_size | 0b000;
+    }
 
     return block_ptr + 8; // skip header
 }
@@ -98,6 +97,35 @@ void mem_release(void *ptr)
     flags = 0b000;
     header = size | flags;
     *((int64_t *)ptr) = header;
+    *((int64_t *)(ptr + size - 8)) = header;
+
+    // verifier le bloc precedent
+    if (ptr != heap_base && (*((int64_t *)(ptr - 8)) & 0b111) == 0)
+    {
+        // si le bloc precedent est vide, on merge
+        int64_t prec_footer = *((int64_t *)(ptr - 8));
+        int64_t prec_size = prec_footer & ~0b111;
+        int64_t total_size = prec_size + size;
+        int64_t new_header = total_size | flags;
+        *((int64_t *)(ptr - prec_size)) = new_header;
+        *((int64_t *)(ptr + size - 8)) = new_header;
+        ptr = ptr - prec_size;
+        size = total_size;
+    }
+
+    // verifier le bloc suivant
+    if ((ptr + size) != heap_end && (*((int64_t *)(ptr + size)) & 0b111) == 0)
+    {
+        // si le bloc suivant est vide, on merge
+        int64_t next_header = *((int64_t *)(ptr + size));
+        int64_t next_size = next_header & ~0b111;
+        int64_t total_size = next_size + size;
+        int64_t new_header = total_size | flags;
+        *((int64_t *)ptr) = new_header;
+        *((int64_t *)(ptr + total_size - 8)) = new_header;
+        ptr = ptr - next_size;
+        size = total_size;
+    }
 
     return;
 }
@@ -114,6 +142,7 @@ void mem_show_heap(void)
         int64_t header = *((int64_t *)block_ptr);
         char flags = header & 0b111;    //   keep only three least significant bits
         int64_t size = header & ~0b111; // discard the three least significant bits
+        int64_t footer = *((int64_t *)(block_ptr + size - 8));
         if ((size < 8) ||
             (size % 8 != 0))
         {
@@ -121,9 +150,11 @@ void mem_show_heap(void)
             exit(1);
         }
 
-        printf("  block at %p: header=0x%08lx size=%ld flags=%d (%s)\n",
+        printf("  block at %p: header=0x%08lx size=%ld flags=%d (%s) footer=0x%08lx ==header? (%s) \n",
                block_ptr, header, size, flags,
-               (flags ? "taken" : "free"));
+               (flags ? "taken" : "free"),
+               footer,
+               (footer == header ? "true" : "false"));
 
         block_ptr += size; // move on to next block
     }
